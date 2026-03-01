@@ -1,6 +1,8 @@
 import unittest
+import os
+import tempfile
 
-from website_handler import extract_title, markdown_to_html_node
+from website_handler import extract_title, markdown_to_html_node, generate_page
 
 
 class TestWebsiteHandler(unittest.TestCase):
@@ -71,6 +73,28 @@ the **same** even with inline stuff
         markdown = "## Subtitle\n\nParagraph text"
         with self.assertRaises(Exception):
             extract_title(markdown)
+
+    def test_generate_page_rewrites_root_relative_links_with_basepath(self):
+        markdown = "# Test Page\n\n[Home](/)\n\n![Pic](/images/pic.png)"
+        template = "<html><head><title>{{ Title }}</title></head><body>{{ Content }}</body></html>"
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            from_path = os.path.join(tmpdir, "index.md")
+            template_path = os.path.join(tmpdir, "template.html")
+            dest_path = os.path.join(tmpdir, "out", "index.html")
+
+            with open(from_path, "w") as f:
+                f.write(markdown)
+            with open(template_path, "w") as f:
+                f.write(template)
+
+            generate_page(from_path, template_path, dest_path, "/docs/")
+
+            with open(dest_path, "r") as f:
+                html = f.read()
+
+        self.assertIn('href="/docs/"', html)
+        self.assertIn('src="/docs/images/pic.png"', html)
 
 
 if __name__ == "__main__":
