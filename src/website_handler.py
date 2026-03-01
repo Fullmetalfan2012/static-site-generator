@@ -93,6 +93,12 @@ def extract_title(markdown):
 
 def generate_page(from_path, template_path, dest_path, basepath):
     print(f"Generating page from {from_path} to {dest_path} using {template_path}")
+    if not basepath:
+        basepath = "/"
+    if not basepath.startswith("/"):
+        basepath = f"/{basepath}"
+    if not basepath.endswith("/"):
+        basepath = f"{basepath}/"
     with open(from_path, "r") as f:
         markdown = f.read()
     with open(template_path, "r") as f:
